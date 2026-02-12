@@ -25,8 +25,20 @@ archive := os + ".ociarchive"
 config := if os == "scos" { scos_config } else { fcos_config }
 full_name := if os == "scos" { "centos-stream-coreos" } else { "fedora-coreos" }
 
+kbc_image := "quay.io/trusted-execution-clusters/trustee-attester:fedora-b13fd8a"
+clevis_pin_trustee_image := "quay.io/trusted-execution-clusters/clevis-pin-trustee"
+ignition_image := "ghcr.io/trusted-execution-clusters/ignition:20260112-85608d6"
+
+
 build:
-    sudo podman build --no-cache --build-arg BASE={{base}} --build-arg COM_COREOS_OSNAME={{label}} -t {{image}} -f Containerfile .
+    sudo podman build --no-cache \
+           --build-arg BASE={{base}} \
+           --build-arg COM_COREOS_OSNAME={{label}} \
+           --build-arg KBC_IMG={{kbc_image}} \
+           --build-arg CLEVIS_PIN_IMG={{clevis_pin_trustee_image}} \
+           --build-arg IGNITION_IMG={{ignition_image}} \
+           -t {{image}} -f Containerfile .
+
 
 oci-archive:
     sudo skopeo copy containers-storage:{{image}} oci-archive:{{archive}}
