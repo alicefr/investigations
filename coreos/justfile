@@ -29,6 +29,16 @@ kbc_image := "quay.io/trusted-execution-clusters/trustee-attester:fedora-b13fd8a
 clevis_pin_trustee_image := "quay.io/trusted-execution-clusters/clevis-pin-trustee"
 ignition_image := "ghcr.io/trusted-execution-clusters/ignition:20260112-85608d6"
 
+info:
+    @echo "os {{os}}"
+    @echo "base {{base}}"
+    @echo "image {{image}}"
+    @echo "os_name {{os_name}}"
+    @echo "label {{label}}"
+    @echo "kbc_image {{kbc_image}}"
+    @echo "clevis_pin_trustee_image {{clevis_pin_trustee_image}}"
+    @echo "config {{config}}"
+
 
 build:
     sudo podman build --no-cache \
