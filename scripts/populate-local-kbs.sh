@@ -40,8 +40,8 @@ default configuration := 36
 default executables := 33
 
 tpm_pcrs_valid if {
-  input.tpm.pcr04 in data.reference.tpm_pcr4
-  input.tpm.pcr14 in data.reference.tpm_pcr14
+  input.tpm.pcr04 in query_reference_value("tpm_pcr4")
+  input.tpm.pcr14 in query_reference_value("tpm_pcr14")
 }
 
 hardware := 2 if tpm_pcrs_valid
@@ -53,7 +53,7 @@ default instance_identity := 0
 default runtime_opaque := 0
 default storage_opaque := 0
 default sourced_data := 0
-result := {
+trust_claims := {
   "executables": executables,
   "hardware": hardware,
   "configuration": configuration,
