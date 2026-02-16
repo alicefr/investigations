@@ -1,29 +1,28 @@
 os := "fcos"
 
-scos_base_img:= "quay.io/okd/scos-content@sha256:3813e6608a999756931d3d621932af9662860e71a552b2670f9fe320bf0d3585"
 # Tag: quay.io/trusted-execution-clusters/fedora-coreos:42.20251012.2.0
 fcos_base_img:="quay.io/trusted-execution-clusters/fedora-coreos@sha256:6997f51fd27d1be1b5fc2e6cc3ebf16c17eb94d819b5d44ea8d6cf5f826ee773"
+scos_base_img:= "quay.io/okd/scos-content@sha256:3813e6608a999756931d3d621932af9662860e71a552b2670f9fe320bf0d3585"
 
-scos_img:= "quay.io/trusted-execution-clusters/scos"
 fcos_img:= "quay.io/trusted-execution-clusters/fcos"
+scos_img:= "quay.io/trusted-execution-clusters/scos"
 
-fcos_os:= "fedora-coreos"
-scos_os:= "rhcos"
+fcos_name:= "fedora-coreos"
+scos_name:= "centos-stream-coreos"
 
-fcos_label:= "fedora-coreos"
-scos_label:= "centos-stream-coreos"
 
 fcos_config:= "https://github.com/coreos/fedora-coreos-config"
 scos_config:= "https://github.com/coreos/rhel-coreos-config.git"
 
 base := if os == "scos" { scos_base_img } else { fcos_base_img }
 image := if os == "scos" { scos_img } else { fcos_img }
-os_name := if os == "scos" { scos_os } else { fcos_os }
-label := if os == "scos" { scos_label } else { fcos_label }
+os_name := if os == "scos" { scos_name } else { fcos_name }
+config := if os == "scos" { scos_config } else { fcos_config }
+
 archive := os + ".ociarchive"
 
-config := if os == "scos" { scos_config } else { fcos_config }
-full_name := if os == "scos" { "centos-stream-coreos" } else { "fedora-coreos" }
+full_name := os_name
+label := os_name
 
 kbc_image := "quay.io/trusted-execution-clusters/trustee-attester:fedora-b13fd8a"
 clevis_pin_trustee_image := "quay.io/trusted-execution-clusters/clevis-pin-trustee"
