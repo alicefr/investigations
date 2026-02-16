@@ -75,9 +75,6 @@ $KBC --url $URL  config \
 	--auth-private-key $KEY  \
 	set-sample-reference-value tpm_pcr14 "17cdefd9548f4383b67a37a901673bf3c8ded6f619d36c8007562de1d93c81cc"
 
-$KBC --url $URL config \
-	--auth-private-key $KEY  \
-	get-reference-values
 $KBC --url $URL  config \
 	--auth-private-key $KEY  \
 	set-attestation-policy --policy-file tmp/attestation-policy.rego --id default_cpu --type rego
