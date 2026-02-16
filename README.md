@@ -36,6 +36,8 @@ just os=scos \
      [clevis_pin_trustee_image="$CLEVIS_PIN_IMAGE"] \
      [ignition_image="$IGNITION_IMAGE"] \
      build oci-archive init build-qemu
+# Red Hat CoreOS image (qemu) -- like 'scos' but os=rhcos
+  (and possibly different container images)
 ```
 
 ### Create local Trustee deployment
