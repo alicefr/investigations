@@ -26,10 +26,18 @@ which contains the trustee attester, and the KBS information hardcoded in the se
 Build the Fedora CoreOS or Centos Stream CoreOS image with the custom initrd:
 ```bash
 cd coreos
-# Centos Stream CoreOS image
-just os=scos build oci-archive osbuild-qemu
-# Fedora CoreOS image
-just build oci-archive osbuild-qemu
+# Fedora CoreOS image (qemu)
+just build oci-archive init build-qemu
+# Fedora CoreOS image for Azure
+just build oci-archive init azure
+# Centos Stream CoreOS image (qemu)
+just os=scos \
+     [kbc_image="$KBC_IMAGE"] \
+     [clevis_pin_trustee_image="$CLEVIS_PIN_IMAGE"] \
+     [ignition_image="$IGNITION_IMAGE"] \
+     build oci-archive init build-qemu
+# Red Hat CoreOS image (qemu) -- like 'scos' but os=rhcos
+  (and possibly different container images)
 ```
 
 ### Create local Trustee deployment
