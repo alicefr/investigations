@@ -17,6 +17,8 @@ on:
     paths:
       - 'containerfiles/ignition.container'
       - '.github/workflows/build-ignition-image.yml'
+  schedule:
+    - cron:  '0 0 * * MON'
   workflow_dispatch:
 
 permissions: read-all
@@ -64,7 +66,7 @@ jobs:
 
       - name: Push ignition image (${{ matrix.tag }}) to registry
         uses: redhat-actions/push-to-registry@v2
-        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && github.repository_owner == 'trusted-execution-clusters'
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule') && github.ref == 'refs/heads/main' && github.repository_owner == 'trusted-execution-clusters'
         with:
           image: ${{ steps.build-image.outputs.image }}
           tags: ${{ matrix.tag }} ${{ steps.build-image.outputs.tags }}
