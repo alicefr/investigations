@@ -1,3 +1,16 @@
+ARG BASE
+FROM $BASE AS builder
+
+RUN yum install -y \ 
+	git \
+	golang \
+	libblkid-devel \
+	&& yum clean all
+
+RUN git clone https://github.com/coreos/ignition.git \
+	&& cd ignition \
+	&& ./build
+
 FROM scratch
 
-COPY bin/amd64/ignition /usr/bin/ignition
+COPY --from=builder /ignition/bin/amd64/ignition /usr/bin/ignition
