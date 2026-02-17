@@ -2,7 +2,7 @@ name: "Build and push Ignition container image"
 
 env:
   NAME: "ignition"
-  REGISTRY: "ghcr.io/trusted-execution-clusters"
+  REGISTRY: "quay.io/trusted-execution-clusters"
 
 on:
   push:
@@ -19,9 +19,7 @@ on:
       - '.github/workflows/build-ignition-image.yml'
   workflow_dispatch:
 
-permissions:
-  contents: read
-  packages: write
+permissions: read-all
 
 # Prevent multiple workflow runs from racing to ensure that pushes are made
 # sequentially for the main branch. Also cancel in progress workflow runs for
@@ -44,34 +42,32 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && github.repository_owner == 'trusted-execution-clusters'
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Generate image metadata
-        id: meta
+      - name: Generate image tag
+        id: generate-tag
         run: |
-          BUILD_DATE=$(date +%Y%m%d)
-          SHORT_SHA=${GITHUB_SHA::7}
-          echo "build-date=${BUILD_DATE}" >> $GITHUB_OUTPUT
-          echo "version=${{ matrix.tag }}-${BUILD_DATE}-${SHORT_SHA}" >> $GITHUB_OUTPUT
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          TAG="${{ matrix.tag }}-${SHORT_SHA}"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
 
-      - name: Build and push Ignition image (${{ matrix.tag }})
-        uses: docker/build-push-action@v5
+      - name: Build ignition image (${{ matrix.tag }})
+        id: build-image
+        uses: redhat-actions/buildah-build@v2
         with:
+          image: ${{ env.NAME }}
+          tags: ${{ steps.generate-tag.outputs.tag }}
+          containerfiles: |
+            containerfiles/ignition.container
           context: containerfiles
-          file: containerfiles/ignition.container
+          oci: true
           build-args: |
             BASE=${{ matrix.base }}
-          push: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && github.repository_owner == 'trusted-execution-clusters' }}
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.NAME }}:${{ matrix.tag }}
-            ${{ env.REGISTRY }}/${{ env.NAME }}:${{ steps.meta.outputs.version }}
-          platforms: linux/amd64
+
+      - name: Push ignition image (${{ matrix.tag }}) to registry
+        uses: redhat-actions/push-to-registry@v2
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && github.repository_owner == 'trusted-execution-clusters'
+        with:
+          image: ${{ steps.build-image.outputs.image }}
+          tags: ${{ matrix.tag }} ${{ steps.build-image.outputs.tags }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
