@@ -41,11 +41,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Get latest commit from clevis-pin-trustee repo
+        id: get-upstream-commit
+        run: |
+          UPSTREAM_SHA=$(git ls-remote https://github.com/latchset/clevis-pin-trustee.git HEAD | cut -f1)
+          SHORT_SHA=$(echo $UPSTREAM_SHA | cut -c1-7)
+          echo "sha=${UPSTREAM_SHA}" >> $GITHUB_OUTPUT
+          echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+
       - name: Generate image tag
         id: generate-tag
         run: |
-          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
-          TAG="${{ matrix.tag }}-${SHORT_SHA}"
+          TAG="${{ matrix.tag }}-${{ steps.get-upstream-commit.outputs.short_sha }}"
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
 
       - name: Build clevis-pin-trustee image (${{ matrix.tag }})
@@ -59,6 +66,7 @@ jobs:
           context: clevis-pin-trustee
           build-args: |
             BASE=${{ matrix.base }}
+            COMMIT=${{ steps.get-upstream-commit.outputs.sha }}
           oci: true
 
       - name: Push clevis-pin-trustee image (${{ matrix.tag }}) to registry

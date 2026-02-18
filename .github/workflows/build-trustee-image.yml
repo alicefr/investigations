@@ -40,11 +40,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Get latest commit from trustee repo
+        id: get-upstream-commit
+        run: |
+          UPSTREAM_SHA=$(git ls-remote https://github.com/confidential-containers/trustee.git HEAD | cut -f1)
+          SHORT_SHA=$(echo $UPSTREAM_SHA | cut -c1-7)
+          echo "sha=${UPSTREAM_SHA}" >> $GITHUB_OUTPUT
+          echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+
       - name: Generate image tag
         id: generate-tag
         run: |
-          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
-          TAG="${SHORT_SHA}"
+          TAG="${{ steps.get-upstream-commit.outputs.short_sha }}"
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
 
       - name: Build Trustee image
@@ -57,6 +64,8 @@ jobs:
             containerfiles/trustee.container
           context: containerfiles
           oci: true
+          build-args: |
+            COMMIT=${{ steps.get-upstream-commit.outputs.sha }}
 
       - name: Push to Container Registry
         uses: redhat-actions/push-to-registry@v2
