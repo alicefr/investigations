@@ -5,8 +5,10 @@
 ARG BASE
 FROM $BASE AS build
 
+ARG COMMIT=main
+
 RUN git clone https://github.com/latchset/clevis-pin-trustee
-RUN cd clevis-pin-trustee && cargo build --release -p clevis-pin-trustee
+RUN cd clevis-pin-trustee && git checkout ${COMMIT} && cargo build --release -p clevis-pin-trustee
 
 FROM scratch
 COPY --from=build /clevis-pin-trustee/target/release/clevis-pin-trustee /usr/bin/clevis-pin-trustee
