@@ -32,34 +32,41 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        base_image:
-          - name: buildroot-fedora
-            image: ghcr.io/trusted-execution-clusters/buildroot:fedora
-          - name: buildroot-cs9
-            image: ghcr.io/trusted-execution-clusters/buildroot:centos-stream
+        include:
+          - tag: fedora
+            base: ghcr.io/trusted-execution-clusters/buildroot:fedora
+          - tag: centos-stream
+            base: ghcr.io/trusted-execution-clusters/buildroot:centos-stream
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build clevis-pin-trustee image
+      - name: Generate image tag
+        id: generate-tag
+        run: |
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          TAG="${{ matrix.tag }}-${SHORT_SHA}"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+
+      - name: Build clevis-pin-trustee image (${{ matrix.tag }})
         id: build-image
         uses: redhat-actions/buildah-build@v2
         with:
           image: ${{ env.NAME }}
-          tags: ${{ matrix.base_image.name }}
+          tags: ${{ steps.generate-tag.outputs.tag }}
           containerfiles: |
             clevis-pin-trustee/Containerfile
           context: clevis-pin-trustee
           build-args: |
-            BASE=${{ matrix.base_image.image }}
+            BASE=${{ matrix.base }}
           oci: true
 
-      - name: Push to Container Registry
+      - name: Push clevis-pin-trustee image (${{ matrix.tag }}) to registry
         uses: redhat-actions/push-to-registry@v2
         if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule') && github.ref == 'refs/heads/main' && github.repository_owner == 'trusted-execution-clusters'
         with:
           image: ${{ steps.build-image.outputs.image }}
-          tags: ${{ steps.build-image.outputs.tags }}
+          tags: ${{ steps.generate-tag.outputs.tag }}
           registry: ${{ env.REGISTRY }}
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}

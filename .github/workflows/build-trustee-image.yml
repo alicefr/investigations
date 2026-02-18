@@ -63,7 +63,7 @@ jobs:
         if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule') && github.ref == 'refs/heads/main' && github.repository_owner == 'trusted-execution-clusters'
         with:
           image: ${{ steps.build-image.outputs.image }}
-          tags: ${{ matrix.tag }} ${{ steps.build-image.outputs.tags }}
+          tags: ${{ steps.generate-tag.outputs.tag }}
           registry: ${{ env.REGISTRY }}
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
