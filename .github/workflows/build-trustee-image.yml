@@ -32,6 +32,9 @@ concurrency:
 
 jobs:
   build-trustee-image:
+    ## TODO REMOVE this false to let the job running again once the compilation 
+    # for trustee on rawhide is fixed
+    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
