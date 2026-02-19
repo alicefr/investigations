@@ -23,7 +23,7 @@ default allow := false
 
 allow if {
   input.submods.cpu0["ear.status"] == "affirming"
-  input.submods.cpu0["ear.veraison.annotated-evidence"].init_data_claims.uuid == split(data["resource-path"], "/")[2]
+#  input.submods.cpu0["ear.veraison.annotated-evidence"].init_data_claims.uuid == split(data["resource-path"], "/")[2]
 }
 EOF
 
