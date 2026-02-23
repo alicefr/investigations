@@ -38,8 +38,20 @@ jobs:
         include:
           - tag: fedora
             base: fedora:rawhide
+            variant: standard
+            attesters: snp-attester,tdx-attester,az-snp-vtpm-attester,az-tdx-vtpm-attester,tpm-attester
+          - tag: fedora
+            base: fedora:rawhide
+            variant: without-tpm
+            attesters: snp-attester,tdx-attester,az-snp-vtpm-attester,az-tdx-vtpm-attester
           - tag: centos-stream
             base: quay.io/centos/centos:stream9
+            variant: standard
+            attesters: snp-attester,tdx-attester,az-snp-vtpm-attester,az-tdx-vtpm-attester,tpm-attester
+          - tag: centos-stream
+            base: quay.io/centos/centos:stream9
+            variant: without-tpm
+            attesters: snp-attester,tdx-attester,az-snp-vtpm-attester,az-tdx-vtpm-attester
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -55,10 +67,10 @@ jobs:
       - name: Generate image tag
         id: generate-tag
         run: |
-          TAG="${{ matrix.tag }}-${{ steps.get-upstream-commit.outputs.short_sha }}"
+          TAG="${{ matrix.tag }}-${{ matrix.variant }}-${{ steps.get-upstream-commit.outputs.short_sha }}"
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
 
-      - name: Build trustee-attester image (${{ matrix.tag }})
+      - name: Build trustee-attester image (${{ matrix.tag }}-${{ matrix.variant }})
         id: build-image
         uses: redhat-actions/buildah-build@v2
         with:
@@ -71,8 +83,9 @@ jobs:
           build-args: |
             BASE=${{ matrix.base }}
             COMMIT=${{ steps.get-upstream-commit.outputs.sha }}
+            ATTESTERS=${{ matrix.attesters }}
 
-      - name: Push trustee-attester image (${{ matrix.tag }}) to registry
+      - name: Push trustee-attester image (${{ matrix.tag }}-${{ matrix.variant }}) to registry
         uses: redhat-actions/push-to-registry@v2
         if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule') && github.ref == 'refs/heads/main' && github.repository_owner == 'trusted-execution-clusters'
         with:
